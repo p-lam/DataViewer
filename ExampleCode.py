@@ -1,0 +1,126 @@
+import math
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+# Python modules for signal processing
+from scipy.io import loadmat
+from scipy import signal
+from scipy.signal import filtfilt
+
+
+def getEOH(path):
+    tmp = open(path)
+    eoh = 0;
+    for line in tmp.readlines():
+        eoh += 1
+        if line.find("# EndOfHeader") >= 0:
+            return eoh
+    return 0
+
+
+def readFile(path):
+    eoh = getEOH(path)
+    return pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[2, 3, 4], names=["EEG", "fNIRS1", "fNIRS2"])
+
+
+def EEGTransferFunction(nparr):
+    nparr = nparr / 65536
+    nparr = nparr - .5
+    nparr = nparr * 3
+    nparr = nparr / 40000
+    return nparr
+
+
+# Based on:  https://notebook.community/JoseGuzman/myIPythonNotebooks/SignalProcessing/EEG%20Spectrogram
+def plotSpecgram(eeg, sr):
+    # alis hamming thing
+    lp = np.hamming(35) / np.sum(np.hamming(35))
+    eeg = eeg - filtfilt(lp, 1, eeg)
+    # ExampleCode
+    time = np.arange(eeg.size) / sr  # calculates recording times
+    print('Sampling rate = %d samples/sec' % sr)
+
+    # ExampleCode sets up window-length for spectrogramm
+    WinLength = int(0.4 * sr)
+    step = int(0.02 * sr)
+
+    Nyquist = sr / 2
+    # we have less resolution here because the signals are smaller
+    Nsamples = int(np.floor(WinLength / 2))
+    hz = np.linspace(0, Nyquist, Nsamples + 1)
+    dfreq = hz[1]
+    print('Spectral resolution = %2.4f Hz' % dfreq)
+    # ExampleCode calcs number of steps and sets up empty list myamp
+    nsteps = int(np.floor((eeg.size - WinLength) / step))
+    myamp = list()
+
+    # Does fourier transform
+    for i in range(nsteps):
+        # signal duration 500 ms (512 data points)
+        data = eeg[i * step:i * step + WinLength]
+
+        FourierCoeff = np.fft.fft(data) / WinLength
+        DC = [np.abs(FourierCoeff[0])]  # DC component
+        amp = np.concatenate((DC, 2 * np.abs(FourierCoeff[1:])))
+
+        amp = amp[:int(45 / dfreq)]
+        myamp.append(amp)
+
+    power = np.power(myamp, 2)
+    # logpower = 10*np.log10(power)
+    # sets up subplot
+    fig, ax = plt.subplots(2, 1, figsize=(16, 8), constrained_layout=True)
+    # fig.suptitle('Time-frequency power via short-time FFT')
+    # plots plain eeg data
+    ax[0].plot(time, eeg, lw=1, color='C0')
+    ax[0].set_ylabel('Amplitude ($\mu V$)')
+    ax[0].set_title('EEG signal')
+
+    # spectrum is a ContourSet object
+    dt = (time.size / sr) / nsteps  # recording length in number of steps
+    X = np.arange(nsteps) * dt
+    Y = hz[:int(45 / dfreq)]
+    Z = np.array(myamp).T
+    levels = 45
+    spectrum = ax[1].contourf(X, Y, Z, levels, cmap='jet')  # ,'linecolor','none')
+
+    # get the colormap
+    cbar = plt.colorbar(spectrum)  # , boundaries=np.linspace(0,1,5))
+    cbar.ax.set_ylabel('Amplitude ($\mu$V)', rotation=90)
+    cbar.set_ticks(np.arange(0, 50, 10))
+
+    # A working example (for any value range) with five ticks along the bar is:
+
+    m0 = int(np.floor(np.min(myamp)))  # colorbar min value
+    m4 = int(np.ceil(np.max(myamp)))  # colorbar max value
+    m1 = int(1 * (m4 - m0) / 4.0 + m0)  # colorbar mid value 1
+    m2 = int(2 * (m4 - m0) / 4.0 + m0)  # colorbar mid value 2
+    m3 = int(3 * (m4 - m0) / 4.0 + m0)  # colorbar mid value 3
+    cbar.set_ticks([m0, m1, m2, m3, m4])
+    cbar.set_ticklabels([m0, m1, m2, m3, m4])
+
+    # cbar.set_ticks(np.arange(0, 1.1, 0.5))
+
+    ax[1].axhline(y=8, linestyle='--', linewidth=1.5, color='white')
+    ax[1].axhline(y=12, linestyle='--', linewidth=1.5, color='white')
+    # ax[1].set_ylim([sr*0.002, sr*0.2])
+    # ax[1].set_yticks(np.arange(sr*0.002, sr*0.2, 5))
+    ax[1].set_ylabel('Frequency (Hz)')
+
+    for myax in ax:
+        myax.set_xlim(0, time.size / sr)
+        myax.set_xticks(np.arange(0, time.size / sr, 30))
+        myax.set_xlabel('Time (sec.)')
+    plt.show()
+
+
+if __name__ == '__main__':
+    while True:
+        Tk().withdraw()
+        path = askopenfilename()
+        if path == '':
+            break
+        df = readFile(path)
+        plotSpecgram(EEGTransferFunction(df["EEG"].to_numpy()), 1000)
