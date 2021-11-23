@@ -1,9 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.signal import filtfilt
-
-
-
 
 
 # Based on:  https://notebook.community/JoseGuzman/myIPythonNotebooks/SignalProcessing/EEG%20Spectrogram

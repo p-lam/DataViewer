@@ -1,9 +1,9 @@
+import json
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import json
 
 from Spectrogram import plotSpectrogram
 
@@ -36,8 +36,12 @@ def readFile(path):
         file1 = open(path, 'r')
         jsonText = file1.readlines()[1][2:]
         headerJson = json.loads(jsonText)
-        fs = headerJson["00:07:80:79:6F:DB"]["sampling rate"]
+        headerJson = headerJson[list(headerJson)[0]]
+        fs = headerJson["sampling rate"]
         file1.close()
+    except KeyError:
+        print("\theader missing defaulting to sampling frequency of 1000hz")
+        fs = 1000
     except json.decoder.JSONDecodeError:
         print("\theader missing defaulting to sampling frequency of 1000hz")
         fs = 1000
@@ -77,6 +81,6 @@ if __name__ == '__main__':
         Tk().withdraw()
         path = askopenfilename()
         if path == '':
-            break
+            exit(0)
         df, fs = readFile(path)
         displayData(df, fs)
