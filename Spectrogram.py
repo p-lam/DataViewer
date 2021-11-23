@@ -1,40 +1,13 @@
-import math
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-# Python modules for signal processing
-from scipy.io import loadmat
-from scipy import signal
 from scipy.signal import filtfilt
 
 
-def getEOH(path):
-    tmp = open(path)
-    eoh = 0;
-    for line in tmp.readlines():
-        eoh += 1
-        if line.find("# EndOfHeader") >= 0:
-            return eoh
-    return 0
 
-
-def readFile(path):
-    eoh = getEOH(path)
-    return pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[2, 3, 4], names=["EEG", "fNIRS1", "fNIRS2"])
-
-
-def EEGTransferFunction(nparr):
-    nparr = nparr / 65536
-    nparr = nparr - .5
-    nparr = nparr * 3
-    nparr = nparr / 40000
-    return nparr
 
 
 # Based on:  https://notebook.community/JoseGuzman/myIPythonNotebooks/SignalProcessing/EEG%20Spectrogram
-def plotSpecgram(eeg, sr):
+def plotSpectrogram(eeg, sr):
     # alis hamming thing
     lp = np.hamming(35) / np.sum(np.hamming(35))
     eeg = eeg - filtfilt(lp, 1, eeg)
@@ -113,14 +86,3 @@ def plotSpecgram(eeg, sr):
         myax.set_xlim(0, time.size / sr)
         myax.set_xticks(np.arange(0, time.size / sr, 30))
         myax.set_xlabel('Time (sec.)')
-    plt.show()
-
-
-if __name__ == '__main__':
-    while True:
-        Tk().withdraw()
-        path = askopenfilename()
-        if path == '':
-            break
-        df = readFile(path)
-        plotSpecgram(EEGTransferFunction(df["EEG"].to_numpy()), 1000)

@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import json
 
+from Spectrogram import plotSpectrogram
+
 
 def getEOH(path):
     tmp = open(path)
@@ -15,6 +17,13 @@ def getEOH(path):
             return eoh
     return 0
 
+
+def EEGTransferFunction(nparr):
+    nparr = nparr / 65536
+    nparr = nparr - .5
+    nparr = nparr * 3
+    nparr = nparr / 40000
+    return nparr
 
 def readFile(path):
     print(f"Loading data from {path}")
@@ -36,30 +45,30 @@ def readFile(path):
     return data, fs
 
 
-def displayData(df):
+def displayData(df, sr):
     # yasa.plot_spectrogram(df["EEG"].to_numpy(), win_sec=1, sf=1000, cmap='Spectral_r')
     # plt.xlabel("Time[S]")
-    sr = 1000  # Sampling rate
     resolution = 16  # Resolution (number of available bits)
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
     signal_infrared_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
-
+    eeg = EEGTransferFunction(df["EEG"])
     plt.figure(0)
     # Plot EEG
-    plt.subplot(2, 2, 1)
-    plt.plot(df["EEG"])
-
-    plt.subplot(2, 2, 3)
-    plt.specgram(df["EEG"])
+    plt.subplot(3, 1, 1)
+    plt.plot(eeg)
 
     # Plot fNIRS1
-    plt.subplot(2, 2, 2)
+    plt.subplot(3, 1, 2)
     plt.plot(signal_red_uA)
 
     # Plot fNIRS2
-    plt.subplot(2, 2, 4)
+    plt.subplot(3, 1, 3)
     plt.plot(signal_infrared_uA)
+
+    plotSpectrogram(eeg, sr)
     plt.show()
+
+
 
 
 if __name__ == '__main__':
@@ -70,4 +79,4 @@ if __name__ == '__main__':
         if path == '':
             break
         df, fs = readFile(path)
-        displayData(df)
+        displayData(df, fs)
