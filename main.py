@@ -25,9 +25,11 @@ def EEGTransferFunction(nparr):
     nparr = nparr / 40000
     return nparr
 
+
 def readFile(path):
     print(f"Loading data from {path}")
     eoh = getEOH(path)
+    eoh += 10  # skips first 10 lines
     data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[2, 3, 4], names=["EEG", "fNIRS1", "fNIRS2"])
 
     try:
@@ -67,8 +69,6 @@ def displayData(df, sr):
 
     plotSpectrogram(eeg, sr)
     plt.show()
-
-
 
 
 if __name__ == '__main__':
