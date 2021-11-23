@@ -3,7 +3,6 @@ from tkinter.filedialog import askopenfilename
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import yasa
 import json
 
 
@@ -18,20 +17,28 @@ def getEOH(path):
 
 
 def readFile(path):
+    print(f"Loading data from {path}")
     eoh = getEOH(path)
     data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[2, 3, 4], names=["EEG", "fNIRS1", "fNIRS2"])
-    file1 = open(path, 'r')
-    lines = file1.readline(2)
-    print(lines)
-    file1.close()
-    fs = 500
+
+    try:
+        file1 = open(path, 'r')
+        jsonText = file1.readlines()[1][2:]
+        headerJson = json.loads(jsonText)
+        fs = headerJson["00:07:80:79:6F:DB"]["sampling rate"]
+        file1.close()
+    except json.decoder.JSONDecodeError:
+        print("\theader missing defaulting to sampling frequency of 1000hz")
+        fs = 1000
+    print(f"\tSampling rate {fs}hz")
+    print(data.head())
+
     return data, fs
 
 
 def displayData(df):
-    yasa.plot_spectrogram(df["EEG"].to_numpy(), win_sec=1, sf=1000, cmap='Spectral_r')
-    plt.xlabel("Time[S]")
-    print(df.head())
+    # yasa.plot_spectrogram(df["EEG"].to_numpy(), win_sec=1, sf=1000, cmap='Spectral_r')
+    # plt.xlabel("Time[S]")
     sr = 1000  # Sampling rate
     resolution = 16  # Resolution (number of available bits)
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
@@ -56,6 +63,7 @@ def displayData(df):
 
 
 if __name__ == '__main__':
+
     while True:
         Tk().withdraw()
         path = askopenfilename()
