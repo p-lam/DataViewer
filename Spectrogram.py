@@ -13,8 +13,9 @@ def plotSpectrogram(eeg, sr):
     print('Sampling rate = %d samples/sec' % sr)
 
     # ExampleCode sets up window-length for spectrogramm
-    WinLength = int(0.4 * sr)
-    step = int(0.02 * sr)
+    size = 2
+    WinLength = int(size * sr)
+    step = int(size/10 * sr)
 
     Nyquist = sr / 2
     # we have less resolution here because the signals are smaller
@@ -42,7 +43,7 @@ def plotSpectrogram(eeg, sr):
     # logpower = 10*np.log10(power)
     # sets up subplot
     fig, ax = plt.subplots(2, 1, figsize=(16, 8), constrained_layout=True)
-    # fig.suptitle('Time-frequency power via short-time FFT')
+    #fig.suptitle('3Time-frequency power via short-time FFT')
     # plots plain eeg data
     ax[0].plot(time, eeg, lw=1, color='C0')
     ax[0].set_ylabel('Amplitude ($\mu V$)')
@@ -83,3 +84,4 @@ def plotSpectrogram(eeg, sr):
         myax.set_xlim(0, time.size / sr)
         myax.set_xticks(np.arange(0, time.size / sr, 30))
         myax.set_xlabel('Time (sec.)')
+    return fig
