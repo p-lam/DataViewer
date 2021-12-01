@@ -1,40 +1,10 @@
-import math
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
-import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-# Python modules for signal processing
-from scipy.io import loadmat
-from scipy import signal
+import numpy as np
 from scipy.signal import filtfilt
 
 
-def getEOH(path):
-    tmp = open(path)
-    eoh = 0;
-    for line in tmp.readlines():
-        eoh += 1
-        if line.find("# EndOfHeader") >= 0:
-            return eoh
-    return 0
-
-
-def readFile(path):
-    eoh = getEOH(path)
-    return pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[2, 3, 4], names=["EEG", "fNIRS1", "fNIRS2"])
-
-
-def EEGTransferFunction(nparr):
-    nparr = nparr / 65536
-    nparr = nparr - .5
-    nparr = nparr * 3
-    nparr = nparr / 40000
-    return nparr
-
-
 # Based on:  https://notebook.community/JoseGuzman/myIPythonNotebooks/SignalProcessing/EEG%20Spectrogram
-def plotSpecgram(eeg, sr):
+def plotSpectrogram(eeg, sr):
     # alis hamming thing
     lp = np.hamming(35) / np.sum(np.hamming(35))
     eeg = eeg - filtfilt(lp, 1, eeg)
@@ -43,8 +13,9 @@ def plotSpecgram(eeg, sr):
     print('Sampling rate = %d samples/sec' % sr)
 
     # ExampleCode sets up window-length for spectrogramm
-    WinLength = int(0.4 * sr)
-    step = int(0.02 * sr)
+    size = 2
+    WinLength = int(size * sr)
+    step = int(size/10 * sr)
 
     Nyquist = sr / 2
     # we have less resolution here because the signals are smaller
@@ -72,7 +43,7 @@ def plotSpecgram(eeg, sr):
     # logpower = 10*np.log10(power)
     # sets up subplot
     fig, ax = plt.subplots(2, 1, figsize=(16, 8), constrained_layout=True)
-    # fig.suptitle('Time-frequency power via short-time FFT')
+    #fig.suptitle('3Time-frequency power via short-time FFT')
     # plots plain eeg data
     ax[0].plot(time, eeg, lw=1, color='C0')
     ax[0].set_ylabel('Amplitude ($\mu V$)')
@@ -113,14 +84,4 @@ def plotSpecgram(eeg, sr):
         myax.set_xlim(0, time.size / sr)
         myax.set_xticks(np.arange(0, time.size / sr, 30))
         myax.set_xlabel('Time (sec.)')
-    plt.show()
-
-
-if __name__ == '__main__':
-    while True:
-        Tk().withdraw()
-        path = askopenfilename()
-        if path == '':
-            break
-        df = readFile(path)
-        plotSpecgram(EEGTransferFunction(df["EEG"].to_numpy()), 1000)
+    return fig
