@@ -46,7 +46,7 @@ def readFile(path):
     print(f"Loading data from {path}")
     eoh = getEOH(path)
     eoh += 10  # skips first 10 lines
-    data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[0, 1, 2, 3],
+    data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[0, 2, 3, 4],
                        names=["Time", "EEG", "fNIRS1", "fNIRS2"])
 
     try:
