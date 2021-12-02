@@ -99,33 +99,26 @@ def displayData(df, sr):
     signal_infrared_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
 
     eeg = EEGTransferFunction(df["EEG"].to_numpy())
-    plt.figure(0)
+    plt.figure("Raw Data")
     # Plot EEG
-    plt.subplot(4, 1, 1)
+    plt.subplot(3, 1, 1).set_title("EEG")
     plt.plot(time, eeg)
 
     # Plot fNIRS1
-    plt.subplot(4, 1, 2)
+    plt.subplot(3, 1, 2).set_title("fNIRs red")
     plt.plot(time, signal_red_uA)
 
     # Plot fNIRS2
-    plt.subplot(4, 1, 3)
+    plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
-
-    ax = plt.subplot(4, 1, 4)
-    avg_red = moving_average(signal_infrared_uA, 100)[::sr]
-    avg_ir = moving_average(signal_infrared_uA, 100)[::sr]
-    ax.plot(avg_red[0] - avg_red)
-    ax.plot(avg_ir - avg_ir[0])
 
     plotSpectrogram(eeg, sr)
 
-    plt.figure()
+    plt.figure("SpO2 fNIRs")
     SpO2, Sp02Rev = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
     ax = plt.subplot(1, 1, 1)
     ax.plot(SpO2)
     ax.plot(moving_average(SpO2, 5))
-    plt.ylim([85, 99])
     plt.show()
 
 
