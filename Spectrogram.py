@@ -5,7 +5,7 @@ from multitaper_toolbox.python.multitaper_spectrogram_python import multitaper_s
 # DOI: 10.1152/physiol.00062.2015
 
 
-def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=2):
+def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False):
     # Set spectrogram params
     frequency_range = [0, 80]  # Limit frequencies from 0 to 25 Hz
     time_bandwidth = (window[0] * res) / 2  # Set time-half bandwidth

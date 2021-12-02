@@ -130,9 +130,9 @@ def displayData(df, sr):
 
 
 if __name__ == '__main__':
-
+    Tk().withdraw()
     while True:
-        Tk().withdraw()
+        print("running main loop")
         path = askopenfilename()
         if path == '':
             exit(0)
