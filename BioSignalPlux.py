@@ -85,6 +85,7 @@ def FNIRsToSpO2(IR, red, window):
     red_vpp = red_max - red_min
     R = (red_vpp * IR_avg) / (red_avg * IR_vpp)
     SpO2 = 110 - 25 * R
+    SpO2 = SpO2[window::]
     Sp02Rev = ((SpO2 * 95) / SpO2[0])
     return SpO2[::window], Sp02Rev[::window]
 
@@ -97,7 +98,7 @@ def displayData(df, sr):
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
     signal_infrared_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
 
-    eeg = EEGTransferFunction(df["EEG"])
+    eeg = EEGTransferFunction(df["EEG"].to_numpy())
     plt.figure(0)
     # Plot EEG
     plt.subplot(4, 1, 1)
