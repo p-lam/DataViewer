@@ -1,10 +1,11 @@
 import json
+print(".", end="")
 
-from scipy.signal import filtfilt
+import warnings
 
 print(".", end="")
 from tkinter import Tk
-
+Tk().withdraw()
 print(".", end="")
 from tkinter.filedialog import askopenfilename
 
@@ -21,7 +22,7 @@ print(".", end="")
 from Spectrogram import plotSpectrogram
 
 print(".", end="")
-print("Libraries loaded")
+print("Libraries loaded ▐")
 
 
 def getEOH(path):
@@ -57,13 +58,13 @@ def readFile(path):
         fs = headerJson["sampling rate"]
         file1.close()
     except KeyError:
-        print("\theader missing defaulting to sampling frequency of 1000hz")
+        print("header missing defaulting to sampling frequency of 1000hz")
         fs = 1000
     except json.decoder.JSONDecodeError:
-        print("\theader missing defaulting to sampling frequency of 1000hz")
+        print("header missing defaulting to sampling frequency of 1000hz")
         fs = 1000
-    print(f"\tSampling rate {fs}hz")
-    print(data.head())
+    print(f"Sampling rate {fs}hz")
+    #print(data.head())
 
     return data, fs
 
@@ -86,6 +87,8 @@ def FNIRsToSpO2(IR, red, window):
     R = (red_vpp * IR_avg) / (red_avg * IR_vpp)
     SpO2 = 110 - 25 * R
     SpO2 = SpO2[window::]
+    if np.average(SpO2) < 50:
+        warnings.warn("fNIRS data is potentially bad, average SpO2<50%")
     Sp02Rev = ((SpO2 * 95) / SpO2[0])
     return SpO2[::window], Sp02Rev[::window]
 
@@ -112,7 +115,7 @@ def displayData(df, sr):
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
 
-    plotSpectrogram(eeg, sr)
+    plotSpectrogram(eeg, sr,cpu_cores=1,window=[1,.25],res=.5,resample=False)
 
     plt.figure("SpO2 fNIRs")
     SpO2, Sp02Rev = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
@@ -123,7 +126,7 @@ def displayData(df, sr):
 
 
 if __name__ == '__main__':
-    Tk().withdraw()
+    warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
     while True:
         print("running main loop")
         path = askopenfilename()

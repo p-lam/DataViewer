@@ -284,16 +284,16 @@ def process_input(data, fs, frequency_range=None, time_bandwidth=5, num_tapers=N
     # Check if window size is valid, fix if not
     if window_params[0] * fs % 1 != 0:
         winsize_samples = round(window_params[0] * fs)
-        warnings.warn('Window size is not divisible by sampling frequency. Adjusting window size to ' +
-                      str(winsize_samples / fs) + ' seconds')
+        #warnings.warn('Window size is not divisible by sampling frequency. Adjusting window size to ' +
+       #               str(winsize_samples / fs) + ' seconds')
     else:
         winsize_samples = window_params[0] * fs
 
     # Check if window step is valid, fix if not
     if window_params[1] * fs % 1 != 0:
         winstep_samples = round(window_params[1] * fs)
-        warnings.warn('Window step size is not divisible by sampling frequency. Adjusting window step size to ' +
-                      str(winstep_samples / fs) + ' seconds')
+       # warnings.warn('Window step size is not divisible by sampling frequency. Adjusting window step size to ' +
+       #               str(winstep_samples / fs) + ' seconds')
     else:
         winstep_samples = window_params[1] * fs
 
