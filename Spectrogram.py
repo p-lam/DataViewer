@@ -8,11 +8,11 @@ from multitaper_toolbox.python.multitaper_spectrogram_python import multitaper_s
 # Michael J. Prerau, Ritchie E. Brown, Matt T. Bianchi, Jeffrey M. Ellenbogen, Patrick L. Purdon
 # December 7, 2016 : 60-920
 # DOI: 10.1152/physiol.00062.2015
-def plot(mt_spectrogram, stimes, sfreqs):
+def plot(mt_spectrogram, stimes, sfreqs, name="Multitaper Spectrogram"):
     spect_data = mt_spectrogram
     clim = np.percentile(spect_data, [5, 95])  # Scale colormap from 5th percentile to 95th
 
-    fig = plt.figure("Multitaper Spectrogram", figsize=(10, 5))
+    fig = plt.figure(name, figsize=(10, 5))
     fig.clear()
     librosa.display.specshow(nanpow2db(mt_spectrogram), x_axis='linear', y_axis='linear',
                              x_coords=stimes, y_coords=sfreqs, shading='auto', cmap="jet")
@@ -24,7 +24,7 @@ def plot(mt_spectrogram, stimes, sfreqs):
     return fig
 
 
-def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=True):
+def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=True, name=None):
     # Set spectrogram params
 
     frequency_range = [0, 80]  # Limit frequencies from 0 to 25 Hz
@@ -35,8 +35,8 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     num_tapers = int(time_bandwidth * 2) - 1  # Set number of tapers (optimal is time_bandwidth*2 - 1)
     detrend_opt = 'constant'  # detrend each window by subtracting the average
     clim_scale = False  # do not auto-scale colormap
-    if num_tapers<4:
-        num_tapers=4
+    if num_tapers < 4:
+        num_tapers = 4
     if cpu_cores == 1:
         multiprocess = False
     else:
@@ -63,4 +63,4 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     l2, = ax.plot(beta)
     l3, = ax.plot(gamma)
     ax.legend([l1, l2, l3], ['alpha', 'beta', 'gamma'])
-    return plot(spect, stimes, sfreqs), meanFig
+    return plot(spect, stimes, sfreqs, name), meanFig
