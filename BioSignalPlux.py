@@ -1,21 +1,35 @@
 import json
+from collections import deque
 
-from scipy.signal import filtfilt
+from scipy import signal
+import ChartsTabPanel
+import tkinter
 
-print(".",end="")
+print(".", end="")
+
+import warnings
+
+print(".", end="")
 from tkinter import Tk
-print(".",end="")
+
+print(".", end="")
 from tkinter.filedialog import askopenfilename
-print(".",end="")
+
+print(".", end="")
 import matplotlib.pyplot as plt
-print(".",end="")
+
+print(".", end="")
 import numpy as np
-print(".",end="")
+
+print(".", end="")
 import pandas as pd
-print(".",end="")
+
+print(".", end="")
 from Spectrogram import plotSpectrogram
-print(".",end="")
-print("Libraries loaded")
+
+print(".", end="")
+print("Libraries loaded ▐")
+
 
 def getEOH(path):
     tmp = open(path)
@@ -39,7 +53,8 @@ def readFile(path):
     print(f"Loading data from {path}")
     eoh = getEOH(path)
     eoh += 10  # skips first 10 lines
-    data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[0,2, 3, 4], names=["Time","EEG", "fNIRS1", "fNIRS2"])
+    data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[0, 2, 3, 4],
+                       names=["Time", "EEG", "fNIRS1", "fNIRS2"])
 
     try:
         file1 = open(path, 'r')
@@ -49,13 +64,13 @@ def readFile(path):
         fs = headerJson["sampling rate"]
         file1.close()
     except KeyError:
-        print("\theader missing defaulting to sampling frequency of 1000hz")
+        print("header missing defaulting to sampling frequency of 1000hz")
         fs = 1000
     except json.decoder.JSONDecodeError:
-        print("\theader missing defaulting to sampling frequency of 1000hz")
+        print("header missing defaulting to sampling frequency of 1000hz")
         fs = 1000
-    print(f"\tSampling rate {fs}hz")
-    print(data.head())
+    print(f"Sampling rate {fs}hz")
+    # print(data.head())
 
     return data, fs
 
@@ -64,55 +79,80 @@ def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
 
 
+def FNIRsToSpO2(IR, red, window):
+    IR_rolling = IR.rolling(window)
+    red_rolling = red.rolling(window)
+    IR_avg = IR_rolling.mean().fillna(0).to_numpy()
+    red_avg = red_rolling.mean().fillna(0).to_numpy()
+    IR_min = IR_rolling.min().to_numpy()
+    IR_max = IR_rolling.max().fillna(0).to_numpy()
+    red_min = red_rolling.min().fillna(0).to_numpy()
+    red_max = red_rolling.max().fillna(0).to_numpy()
+    IR_vpp = IR_max - IR_min
+    red_vpp = red_max - red_min
+    R = (red_vpp * IR_avg) / (red_avg * IR_vpp)
+    SpO2 = 110 - 25 * R
+    SpO2 = SpO2[window::]
+    if np.average(SpO2) < 50:
+        warnings.warn("fNIRS data is potentially bad, average SpO2<50%")
+    Sp02Rev = ((SpO2 * 95) / SpO2[0])
+    return SpO2[::window], Sp02Rev[::window]
+
+
 def displayData(df, sr):
-    # yasa.plot_spectrogram(df["EEG"].to_numpy(), win_sec=1, sf=1000, cmap='Spectral_r')
-    # plt.xlabel("Time[S]")
-    time = np.array(df["Time"])/sr
+    figs = deque()
+
+    time = np.array(df["Time"]) / sr
     resolution = 16  # Resolution (number of available bits)
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
     signal_infrared_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
-    eeg = EEGTransferFunction(df["EEG"])
-    plt.figure(0)
+
+    eeg = EEGTransferFunction(df["EEG"].to_numpy())
+    rawFig = plt.figure("Raw Data")
+    rawFig.clear()
     # Plot EEG
-    plt.subplot(4, 1, 1)
-    plt.plot(time,eeg)
+    plt.subplot(3, 1, 1).set_title("EEG")
+    plt.plot(time, eeg)
 
     # Plot fNIRS1
-    plt.subplot(4, 1, 2)
-    plt.plot(time,signal_red_uA)
+    plt.subplot(3, 1, 2).set_title("fNIRs red")
+    plt.plot(time, signal_red_uA)
 
     # Plot fNIRS2
-    plt.subplot(4, 1, 3)
-    plt.plot(time,signal_infrared_uA)
+    plt.subplot(3, 1, 3).set_title("fNIRs IR")
+    plt.plot(time, signal_infrared_uA)
 
-    ax = plt.subplot(4, 1, 4)
-    avg_red = moving_average(signal_infrared_uA, 100)
-    avg_ir = moving_average(signal_infrared_uA, 100)
-    ax.plot(avg_red[0]-avg_red)
-    ax.plot(avg_ir-avg_ir[0])
+    spectrogramFig, meanFig = plotSpectrogram(eeg, sr, cpu_cores=1, window=[5, 1], res=1, resample=False)
 
-    plotSpectrogram(eeg, sr)
-
-    #lp = np.hamming(35) / np.sum(np.hamming(35))
-    #eeg = eeg - filtfilt(lp, 1, eeg)
-
-    # plt.figure()
-    # plt.subplot(2, 1, 1)
-    # plt.magnitude_spectrum(eeg[10 * sr:50 * sr],Fs=sr)
-    # plt.xlim([0,40])
-    # plt.subplot(2, 1, 2)
-    # plt.magnitude_spectrum(eeg[70 * sr:110 * sr],Fs=sr)
-    # plt.xlim([0,40])
-
-    plt.show()
+    SpO2Fig = plt.figure("SpO2 fNIRs")
+    SpO2Fig.clear()
+    SpO2_, SpO2 = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(SpO2, linewidth=0.75)
+    rolling_avg_SpO2 = moving_average(SpO2, 5)
+    ax.plot(rolling_avg_SpO2, color='purple', linewidth=0.75)
+    bnotch, anotch = signal.iirnotch(0.2, 2)
+    rolling_w_notch_filter = signal.filtfilt(bnotch, anotch, rolling_avg_SpO2)
+    ax.plot(rolling_w_notch_filter, color='red')
+    # plt.figure("FNIRS psd")
+    # plt.magnitude_spectrum(rolling_avg_SpO2)
+    # plt.xlim([0.05, 1])
+    # plt.show()
+    figs.append(rawFig)
+    figs.append(SpO2Fig)
+    figs.append(spectrogramFig)
+    figs.append(meanFig)
+    return figs
 
 
 if __name__ == '__main__':
-
+    warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
     while True:
-        Tk().withdraw()
+        print("running main loop")
         path = askopenfilename()
         if path == '':
             exit(0)
         df, fs = readFile(path)
-        displayData(df, fs)
+        figs = displayData(df, fs)
+        root = tkinter.Tk()
+        tabPane = ChartsTabPanel.ChartsTabPane(root, figs)

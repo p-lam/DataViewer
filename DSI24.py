@@ -39,8 +39,8 @@ def readFile(path):
 
 def displayData(df, sr):
     for column in df:
-        fig = plotSpectrogram(df[column], sr)
-        fig.suptitle(f"EEG: {column}")
+        plt.suptitle(f"EEG: {column}")
+        plotSpectrogram(df[column].to_numpy(), sr)
         plt.show()
 
 
