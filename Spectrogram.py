@@ -12,7 +12,8 @@ def plot(mt_spectrogram, stimes, sfreqs):
     spect_data = mt_spectrogram
     clim = np.percentile(spect_data, [5, 95])  # Scale colormap from 5th percentile to 95th
 
-    plt.figure("Multitaper Spectrogram", figsize=(10, 5))
+    fig = plt.figure("Multitaper Spectrogram", figsize=(10, 5))
+    fig.clear()
     librosa.display.specshow(nanpow2db(mt_spectrogram), x_axis='linear', y_axis='linear',
                              x_coords=stimes, y_coords=sfreqs, shading='auto', cmap="jet")
     plt.axhline(y=8, linestyle='--', linewidth=1.5, color='white')
@@ -20,6 +21,7 @@ def plot(mt_spectrogram, stimes, sfreqs):
     plt.colorbar(label='Power (dB)')
     plt.xlabel("Time (S)")
     plt.ylabel("Frequency (Hz)")
+    return fig
 
 
 def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=True):
@@ -52,11 +54,13 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     alpha = np.mean(alpha, axis=0)
     beta = np.mean(beta, axis=0)
     gamma = np.mean(gamma, axis=0)
-    plt.figure("EEG mean power over time")
+    meanFig = plt.figure("EEG mean power over time")
+    meanFig.clear()
+
     ax = plt.subplot(1, 1, 1)
     # ax.set_yscale('log')
     l1, = ax.plot(alpha)
     l2, = ax.plot(beta)
     l3, = ax.plot(gamma)
     ax.legend([l1, l2, l3], ['alpha', 'beta', 'gamma'])
-    plot(spect, stimes, sfreqs)
+    return plot(spect, stimes, sfreqs), meanFig

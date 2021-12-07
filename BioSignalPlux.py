@@ -1,11 +1,17 @@
 import json
+from collections import deque
+
+from scipy import signal
+import ChartsTabPanel
+import tkinter
+
 print(".", end="")
 
 import warnings
 
 print(".", end="")
 from tkinter import Tk
-Tk().withdraw()
+
 print(".", end="")
 from tkinter.filedialog import askopenfilename
 
@@ -64,7 +70,7 @@ def readFile(path):
         print("header missing defaulting to sampling frequency of 1000hz")
         fs = 1000
     print(f"Sampling rate {fs}hz")
-    #print(data.head())
+    # print(data.head())
 
     return data, fs
 
@@ -94,15 +100,16 @@ def FNIRsToSpO2(IR, red, window):
 
 
 def displayData(df, sr):
-    # yasa.plot_spectrogram(df["EEG"].to_numpy(), win_sec=1, sf=1000, cmap='Spectral_r')
-    # plt.xlabel("Time[S]")
+    figs = deque()
+
     time = np.array(df["Time"]) / sr
     resolution = 16  # Resolution (number of available bits)
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
     signal_infrared_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
 
     eeg = EEGTransferFunction(df["EEG"].to_numpy())
-    plt.figure("Raw Data")
+    rawFig = plt.figure("Raw Data")
+    rawFig.clear()
     # Plot EEG
     plt.subplot(3, 1, 1).set_title("EEG")
     plt.plot(time, eeg)
@@ -115,14 +122,27 @@ def displayData(df, sr):
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
 
-    plotSpectrogram(eeg, sr,cpu_cores=1,window=[1,.25],res=.5,resample=False)
+    spectrogramFig, meanFig = plotSpectrogram(eeg, sr, cpu_cores=1, window=[5, 1], res=1, resample=False)
 
-    plt.figure("SpO2 fNIRs")
-    SpO2, Sp02Rev = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
+    SpO2Fig = plt.figure("SpO2 fNIRs")
+    SpO2Fig.clear()
+    SpO2_, SpO2 = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
     ax = plt.subplot(1, 1, 1)
-    ax.plot(SpO2)
-    ax.plot(moving_average(SpO2, 5))
-    plt.show()
+    ax.plot(SpO2, linewidth=0.75)
+    rolling_avg_SpO2 = moving_average(SpO2, 5)
+    ax.plot(rolling_avg_SpO2, color='purple', linewidth=0.75)
+    bnotch, anotch = signal.iirnotch(0.2, 2)
+    rolling_w_notch_filter = signal.filtfilt(bnotch, anotch, rolling_avg_SpO2)
+    ax.plot(rolling_w_notch_filter, color='red')
+    # plt.figure("FNIRS psd")
+    # plt.magnitude_spectrum(rolling_avg_SpO2)
+    # plt.xlim([0.05, 1])
+    # plt.show()
+    figs.append(rawFig)
+    figs.append(SpO2Fig)
+    figs.append(spectrogramFig)
+    figs.append(meanFig)
+    return figs
 
 
 if __name__ == '__main__':
@@ -133,4 +153,6 @@ if __name__ == '__main__':
         if path == '':
             exit(0)
         df, fs = readFile(path)
-        displayData(df, fs)
+        figs = displayData(df, fs)
+        root = tkinter.Tk()
+        tabPane = ChartsTabPanel.ChartsTabPane(root, figs)
