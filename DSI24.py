@@ -1,12 +1,19 @@
 import json
+import tkinter
+import warnings
+from collections import deque
+from multiprocessing import Pool, cpu_count
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import ChartsTabPanel
 
 from Spectrogram import plotSpectrogram
+
 print("Libraries loaded")
+
 
 def getEOH(path):
     tmp = open(path)
@@ -38,14 +45,17 @@ def readFile(path):
 
 
 def displayData(df, sr):
-    for column in df:
-        plt.suptitle(f"EEG: {column}")
-        plotSpectrogram(df[column].to_numpy(), sr)
-        plt.show()
+    figs = deque()
+    i = 0
+    for col in df:
+        figs.append(plotSpectrogram(df[col].to_numpy(), sr, cpu_cores=1, name=col)[0])
+        i = i+1
+        print(f"{i}/{len(df.columns)}")
+    return figs
 
 
 if __name__ == '__main__':
-
+    warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
     while True:
         Tk().withdraw()
         path = askopenfilename()
@@ -53,4 +63,6 @@ if __name__ == '__main__':
             exit(0)
         df, fs = readFile(path)
         df = df.drop(["Time", "Trigger", "Time_Offset", "ADC_Status", "ADC_Sequence", "Event", "Comments"], axis=1)
-        displayData(df, fs)
+        figs = displayData(df, fs)
+        root = tkinter.Tk()
+        tabPane = ChartsTabPanel.ChartsTabPane(root, figs)
