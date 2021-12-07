@@ -1,15 +1,14 @@
-import json
+import os
 import tkinter
 import warnings
 from collections import deque
-from multiprocessing import Pool, cpu_count
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import matplotlib.pyplot as plt
+
 import numpy as np
 import pandas as pd
-import ChartsTabPanel
 
+import ChartsTabPanel
 from Spectrogram import plotSpectrogram
 
 print("Libraries loaded")
@@ -65,4 +64,5 @@ if __name__ == '__main__':
         df = df.drop(["Time", "Trigger", "Time_Offset", "ADC_Status", "ADC_Sequence", "Event", "Comments"], axis=1)
         figs = displayData(df, fs)
         root = tkinter.Tk()
+        root.title(f"DSI24 Viewer: {os.path.basename(path)}")
         tabPane = ChartsTabPanel.ChartsTabPane(root, figs)

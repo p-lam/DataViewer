@@ -6,7 +6,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class ChartsTabPane:
     def __init__(self, root,figs):
-        root.title("Tab Widget")
         tabControl = ttk.Notebook(root)
 
         for figure in figs:
