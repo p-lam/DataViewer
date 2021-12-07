@@ -8,7 +8,7 @@ from multitaper_toolbox.python.multitaper_spectrogram_python import multitaper_s
 # Michael J. Prerau, Ritchie E. Brown, Matt T. Bianchi, Jeffrey M. Ellenbogen, Patrick L. Purdon
 # December 7, 2016 : 60-920
 # DOI: 10.1152/physiol.00062.2015
-def plot(mt_spectrogram, stimes, sfreqs, name="Multitaper Spectrogram"):
+def plot(mt_spectrogram, stimes, sfreqs, name):
     spect_data = mt_spectrogram
     clim = np.percentile(spect_data, [5, 95])  # Scale colormap from 5th percentile to 95th
 
@@ -24,7 +24,7 @@ def plot(mt_spectrogram, stimes, sfreqs, name="Multitaper Spectrogram"):
     return fig
 
 
-def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=True, name=None):
+def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=True, name="Multitaper Spectrogram"):
     # Set spectrogram params
 
     frequency_range = [0, 80]  # Limit frequencies from 0 to 25 Hz

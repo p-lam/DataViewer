@@ -1,17 +1,18 @@
 import json
-from collections import deque
+import os
+import tkinter
+
 
 from scipy import signal
+
 import ChartsTabPanel
-import tkinter
 
 print(".", end="")
 
 import warnings
 
 print(".", end="")
-from tkinter import Tk
-
+from collections import deque
 print(".", end="")
 from tkinter.filedialog import askopenfilename
 
@@ -155,4 +156,5 @@ if __name__ == '__main__':
         df, fs = readFile(path)
         figs = displayData(df, fs)
         root = tkinter.Tk()
+        root.title(f"BioSignalPlux Viewer: {os.path.basename(path)}")
         tabPane = ChartsTabPanel.ChartsTabPane(root, figs)
