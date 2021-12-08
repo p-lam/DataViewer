@@ -4,7 +4,6 @@ import tkinter
 
 from scipy.signal import butter, filtfilt
 
-tkinter.Tk().withdraw()
 
 from scipy import signal
 
@@ -118,24 +117,26 @@ def displayData(df, sr):
 
     eeg = EEGTransferFunction(df["EEG"].to_numpy())
     rawFig = plt.figure("Raw Data")
-    rawFig.clear()
     # Plot EEG
     plt.subplot(3, 1, 1).set_title("EEG")
+    plt.cla()
     plt.plot(time, eeg)
 
     # Plot fNIRS1
     plt.subplot(3, 1, 2).set_title("fNIRs red")
+    plt.cla()
     plt.plot(time, signal_red_uA)
 
 
     # Plot fNIRS2
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
+    plt.cla()
     plt.plot(time, signal_infrared_uA)
 
     spectrogramFig, meanFig = plotSpectrogram(eeg, sr, cpu_cores=1, window=[5, 1], res=1, resample=False)
 
     SpO2Fig = plt.figure("SpO2 fNIRs")
-    SpO2Fig.clear()
+    plt.cla()
     SpO2, SpO2Rev = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
     ax = plt.subplot(1, 1, 1)
     ax.plot(SpO2, linewidth=0.75)
@@ -157,7 +158,8 @@ def displayData(df, sr):
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
-    while True:
+    running = True
+    while running:
         print("running main loop")
         path = askopenfilename()
         if path == '':
@@ -167,3 +169,4 @@ if __name__ == '__main__':
         root = tkinter.Tk()
         root.title(f"BioSignalPlux Viewer: {os.path.basename(path)}")
         tabPane = ChartsTabPanel.ChartsTabPane(root, figs)
+        #running = False
