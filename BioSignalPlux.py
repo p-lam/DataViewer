@@ -2,6 +2,9 @@ import json
 import os
 import tkinter
 
+from scipy.signal import butter, filtfilt
+
+tkinter.Tk().withdraw()
 
 from scipy import signal
 
@@ -13,6 +16,7 @@ import warnings
 
 print(".", end="")
 from collections import deque
+
 print(".", end="")
 from tkinter.filedialog import askopenfilename
 
@@ -103,6 +107,10 @@ def FNIRsToSpO2(IR, red, window):
 def displayData(df, sr):
     figs = deque()
 
+    b, a = butter(4, [.01 / (sr * 0.5), 15 / (sr * 0.5)], 'bandpass', analog=True)
+    df["fNIRS1"] = pd.Series(filtfilt(b, a, df["fNIRS1"]))
+    df["fNIRS2"] = pd.Series(filtfilt(b, a, df["fNIRS2"]))
+
     time = np.array(df["Time"]) / sr
     resolution = 16  # Resolution (number of available bits)
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
@@ -119,6 +127,7 @@ def displayData(df, sr):
     plt.subplot(3, 1, 2).set_title("fNIRs red")
     plt.plot(time, signal_red_uA)
 
+
     # Plot fNIRS2
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
@@ -127,7 +136,7 @@ def displayData(df, sr):
 
     SpO2Fig = plt.figure("SpO2 fNIRs")
     SpO2Fig.clear()
-    SpO2_, SpO2 = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
+    SpO2, SpO2Rev = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
     ax = plt.subplot(1, 1, 1)
     ax.plot(SpO2, linewidth=0.75)
     rolling_avg_SpO2 = moving_average(SpO2, 5)
@@ -138,7 +147,7 @@ def displayData(df, sr):
     # plt.figure("FNIRS psd")
     # plt.magnitude_spectrum(rolling_avg_SpO2)
     # plt.xlim([0.05, 1])
-    # plt.show()
+    #plt.show()
     figs.append(rawFig)
     figs.append(SpO2Fig)
     figs.append(spectrogramFig)
