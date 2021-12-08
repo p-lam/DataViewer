@@ -13,7 +13,6 @@ def plot(mt_spectrogram, stimes, sfreqs, name):
     clim = np.percentile(spect_data, [5, 95])  # Scale colormap from 5th percentile to 95th
 
     fig = plt.figure(name, figsize=(10, 5))
-    plt.cla()
     librosa.display.specshow(nanpow2db(mt_spectrogram), x_axis='linear', y_axis='linear',
                              x_coords=stimes, y_coords=sfreqs, shading='auto', cmap="jet")
     plt.axhline(y=8, linestyle='--', linewidth=1.5, color='white')
@@ -55,7 +54,6 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     beta = np.mean(beta, axis=0)
     gamma = np.mean(gamma, axis=0)
     meanFig = plt.figure("EEG mean power over time")
-    plt.cla()
 
     ax = plt.subplot(1, 1, 1)
     # ax.set_yscale('log')
