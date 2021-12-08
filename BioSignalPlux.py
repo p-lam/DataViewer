@@ -4,7 +4,6 @@ import tkinter
 
 from scipy.signal import butter, filtfilt
 
-
 from scipy import signal
 
 import ChartsTabPanel
@@ -106,14 +105,14 @@ def FNIRsToSpO2(IR, red, window):
 def displayData(df, sr):
     figs = deque()
 
-    b, a = butter(4, [.01 / (sr * 0.5), 15 / (sr * 0.5)], 'bandpass', analog=True)
-    df["fNIRS1"] = pd.Series(filtfilt(b, a, df["fNIRS1"]))
-    df["fNIRS2"] = pd.Series(filtfilt(b, a, df["fNIRS2"]))
-
     time = np.array(df["Time"]) / sr
     resolution = 16  # Resolution (number of available bits)
     signal_red_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
-    signal_infrared_uA = (0.15 * np.array(df["fNIRS1"])) / 2 ** resolution
+    signal_infrared_uA = (0.15 * np.array(df["fNIRS2"])) / 2 ** resolution
+
+    b, a = butter(4, 15, 'highpass', fs=sr)
+    signal_red_uA = pd.Series(signal_red_uA - filtfilt(b, a, signal_red_uA))
+    signal_infrared_uA = pd.Series(signal_infrared_uA - filtfilt(b, a, signal_infrared_uA))
 
     eeg = EEGTransferFunction(df["EEG"].to_numpy())
     rawFig = plt.figure("Raw Data")
@@ -125,7 +124,6 @@ def displayData(df, sr):
     plt.subplot(3, 1, 2).set_title("fNIRs red")
     plt.plot(time, signal_red_uA)
 
-
     # Plot fNIRS2
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
@@ -133,18 +131,18 @@ def displayData(df, sr):
     spectrogramFig, meanFig = plotSpectrogram(eeg, sr, cpu_cores=1, window=[5, 1], res=1, resample=False)
 
     SpO2Fig = plt.figure("SpO2 fNIRs")
-    SpO2, SpO2Rev = FNIRsToSpO2(df["fNIRS2"], df["fNIRS1"], sr)
+    SpO2, SpO2Rev = FNIRsToSpO2(signal_infrared_uA, signal_red_uA, sr)
     ax = plt.subplot(1, 1, 1)
-    ax.plot(SpO2, linewidth=0.75)
+    ax.plot(SpO2, linewidth=0.5)
     rolling_avg_SpO2 = moving_average(SpO2, 5)
     ax.plot(rolling_avg_SpO2, color='purple', linewidth=0.75)
     bnotch, anotch = signal.iirnotch(0.2, 2)
     rolling_w_notch_filter = signal.filtfilt(bnotch, anotch, rolling_avg_SpO2)
-    ax.plot(rolling_w_notch_filter, color='red')
+    ax.plot(rolling_w_notch_filter, color='red', linewidth=2)
     # plt.figure("FNIRS psd")
     # plt.magnitude_spectrum(rolling_avg_SpO2)
     # plt.xlim([0.05, 1])
-    #plt.show()
+    # plt.show()
     figs.append(rawFig)
     figs.append(SpO2Fig)
     figs.append(spectrogramFig)
@@ -166,4 +164,4 @@ if __name__ == '__main__':
         root.title(f"BioSignalPlux Viewer: {os.path.basename(path)}")
         tabPane = ChartsTabPanel.ChartsTabPane(root, figs)
         plt.close('all')
-        #running = False
+        # running = False
