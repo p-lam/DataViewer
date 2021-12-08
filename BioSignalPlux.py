@@ -20,7 +20,7 @@ print(".", end="")
 from tkinter.filedialog import askopenfilename
 
 print(".", end="")
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 print(".", end="")
 import numpy as np
@@ -156,7 +156,6 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
     running = True
     while running:
-        import matplotlib.pyplot as plt
         print("running main loop")
         path = askopenfilename()
         if path == '':
@@ -166,4 +165,5 @@ if __name__ == '__main__':
         root = tkinter.Tk()
         root.title(f"BioSignalPlux Viewer: {os.path.basename(path)}")
         tabPane = ChartsTabPanel.ChartsTabPane(root, figs)
+        plt.close('all')
         #running = False
