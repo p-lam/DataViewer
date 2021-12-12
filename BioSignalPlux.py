@@ -50,6 +50,7 @@ def EEGTransferFunction(nparr):
     nparr = nparr - .5
     nparr = nparr * 3
     nparr = nparr / 40000
+    nparr = nparr * 1000000
     return nparr
 
 
@@ -120,14 +121,20 @@ def displayData(df, sr):
     # Plot EEG
     plt.subplot(3, 1, 1).set_title("EEG")
     plt.plot(time, eeg)
+    plt.xlabel("Time (S)")
+    plt.ylabel("Voltage (uV)")
 
     # Plot fNIRS1
     plt.subplot(3, 1, 2).set_title("fNIRs red")
     plt.plot(time, signal_red_uA)
+    plt.xlabel("Time (S)")
+    plt.ylabel("Amperage (uA)")
 
     # Plot fNIRS2
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
+    plt.xlabel("Time (S)")
+    plt.ylabel("Amperage (uA)")
 
     spectrogramFig, meanFig, aplha, beta, gamma = plotSpectrogram(eeg, sr, cpu_cores=1, window=[4, 1], res=1.5,
                                                                   resample=False)
@@ -142,7 +149,6 @@ def displayData(df, sr):
         ax.axvline(x=t, linestyle='--', linewidth=1.5, color='blue')
     bnotch, anotch = signal.iirnotch(0.2, 2)
     rolling_w_notch_filter = signal.filtfilt(bnotch, anotch, rolling_avg_SpO2)
-    ax.plot(rolling_w_notch_filter, color='red', linewidth=2)
     fNIRS_mean = []
     fNIRS_min = []
     fNIRS_max = []
@@ -155,10 +161,13 @@ def displayData(df, sr):
         fNIRS_min.append(np.amin(slice,axis=0))
         fNIRS_max.append(np.amax(slice,axis=0))
     fNIRS_times = np.arange(0, len(fNIRS_mean)*n, n)
-    ax.plot(fNIRS_times,fNIRS_mean, linestyle='--', linewidth=.75, color='black')
-    ax.plot(fNIRS_times, fNIRS_min, linewidth=4, color='black',alpha=.3)
-    ax.plot(fNIRS_times, fNIRS_max, linewidth=4, color='black',alpha=.3)
-
+    lspo2, = ax.plot(rolling_w_notch_filter, color='red', linewidth=2)
+    lmean, = ax.plot(fNIRS_times,fNIRS_mean, linestyle='--', linewidth=.75, color='black')
+    lmin, = ax.plot(fNIRS_times, fNIRS_min, linewidth=4, color='black',alpha=.3)
+    lmax, = ax.plot(fNIRS_times, fNIRS_max, linewidth=4, color='black',alpha=.3)
+    ax.legend([lspo2, lmean, lmin, lmax], ['Sp02', 'Average', 'Min','Max'])
+    plt.xlabel("Time (S)")
+    plt.ylabel("SpO2 (%)")
     figs.append(rawFig)
     figs.append(SpO2Fig)
     figs.append(spectrogramFig)

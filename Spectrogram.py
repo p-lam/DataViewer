@@ -49,9 +49,10 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     tph = np.shape(spect)[0] / (frequency_range[1] - frequency_range[0])
     minf = frequency_range[0]
     getIndex = lambda hz: int((hz - minf) * tph)
-    alpha = spect[getIndex(8):getIndex(12), ]
-    beta = spect[getIndex(12):getIndex(35), ]
-    gamma = spect[getIndex(35):getIndex(50), ]
+
+    alpha = nanpow2db(spect[getIndex(8):getIndex(12), ])
+    beta = nanpow2db(spect[getIndex(12):getIndex(35), ])
+    gamma = nanpow2db(spect[getIndex(35):getIndex(50), ])
     alpha = np.mean(alpha, axis=0)
     beta = np.mean(beta, axis=0)
     gamma = np.mean(gamma, axis=0)
@@ -62,5 +63,7 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     l1, = ax.plot(alpha)
     l2, = ax.plot(beta)
     l3, = ax.plot(gamma)
+    plt.xlabel("Time (S)")
+    plt.ylabel("Power (dB)")
     ax.legend([l1, l2, l3], ['alpha', 'beta', 'gamma'])
     return plot(spect, stimes, sfreqs, name), meanFig, alpha, beta, gamma
