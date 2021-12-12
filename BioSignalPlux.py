@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import tkinter
 
@@ -128,21 +129,36 @@ def displayData(df, sr):
     plt.subplot(3, 1, 3).set_title("fNIRs IR")
     plt.plot(time, signal_infrared_uA)
 
-    spectrogramFig, meanFig = plotSpectrogram(eeg, sr, cpu_cores=1, window=[5, 1], res=1, resample=False)
+    spectrogramFig, meanFig, aplha, beta, gamma = plotSpectrogram(eeg, sr, cpu_cores=1, window=[4, 1], res=1.5,
+                                                                  resample=False)
 
     SpO2Fig = plt.figure("SpO2 fNIRs")
     SpO2, SpO2Rev = FNIRsToSpO2(signal_infrared_uA, signal_red_uA, sr)
     ax = plt.subplot(1, 1, 1)
-    ax.plot(SpO2, linewidth=0.5)
+    #ax.plot(SpO2, linewidth=0.5)
     rolling_avg_SpO2 = moving_average(SpO2, 5)
-    ax.plot(rolling_avg_SpO2, color='purple', linewidth=0.75)
+    #ax.plot(rolling_avg_SpO2, color='purple', linewidth=0.75)
+    for t in range(60, int(len(time) / sr), 60):
+        ax.axvline(x=t, linestyle='--', linewidth=1.5, color='blue')
     bnotch, anotch = signal.iirnotch(0.2, 2)
     rolling_w_notch_filter = signal.filtfilt(bnotch, anotch, rolling_avg_SpO2)
     ax.plot(rolling_w_notch_filter, color='red', linewidth=2)
-    # plt.figure("FNIRS psd")
-    # plt.magnitude_spectrum(rolling_avg_SpO2)
-    # plt.xlim([0.05, 1])
-    # plt.show()
+    fNIRS_mean = []
+    fNIRS_min = []
+    fNIRS_max = []
+    n = math.ceil(time[len(time)-1]/10)  # length of min max and mean window in seconds
+    for i in np.arange(0,int(len(rolling_w_notch_filter)/n)+1):
+        start = i * n
+        end = start + n
+        slice = rolling_w_notch_filter[start:end]
+        fNIRS_mean.append(np.mean(slice,axis=0))
+        fNIRS_min.append(np.amin(slice,axis=0))
+        fNIRS_max.append(np.amax(slice,axis=0))
+    fNIRS_times = np.arange(0, len(fNIRS_mean)*n, n)
+    ax.plot(fNIRS_times,fNIRS_mean, linestyle='--', linewidth=.75, color='black')
+    ax.plot(fNIRS_times, fNIRS_min, linewidth=4, color='black',alpha=.3)
+    ax.plot(fNIRS_times, fNIRS_max, linewidth=4, color='black',alpha=.3)
+
     figs.append(rawFig)
     figs.append(SpO2Fig)
     figs.append(spectrogramFig)

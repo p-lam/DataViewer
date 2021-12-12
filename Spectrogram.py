@@ -17,6 +17,8 @@ def plot(mt_spectrogram, stimes, sfreqs, name):
                              x_coords=stimes, y_coords=sfreqs, shading='auto', cmap="jet")
     plt.axhline(y=8, linestyle='--', linewidth=1.5, color='white')
     plt.axhline(y=12, linestyle='--', linewidth=1.5, color='white')
+    for t in range(60,int(stimes[len(stimes)-1]),60):
+            plt.axvline(x=t, linestyle='--', linewidth=1.5, color='blue')
     plt.colorbar(label='Power (dB)')
     plt.xlabel("Time (S)")
     plt.ylabel("Frequency (Hz)")
@@ -61,4 +63,4 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     l2, = ax.plot(beta)
     l3, = ax.plot(gamma)
     ax.legend([l1, l2, l3], ['alpha', 'beta', 'gamma'])
-    return plot(spect, stimes, sfreqs, name), meanFig
+    return plot(spect, stimes, sfreqs, name), meanFig, alpha, beta, gamma
