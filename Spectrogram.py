@@ -13,11 +13,12 @@ def plot(mt_spectrogram, stimes, sfreqs, name):
     clim = np.percentile(spect_data, [5, 95])  # Scale colormap from 5th percentile to 95th
 
     fig = plt.figure(name, figsize=(10, 5))
-    fig.clear()
     librosa.display.specshow(nanpow2db(mt_spectrogram), x_axis='linear', y_axis='linear',
                              x_coords=stimes, y_coords=sfreqs, shading='auto', cmap="jet")
     plt.axhline(y=8, linestyle='--', linewidth=1.5, color='white')
     plt.axhline(y=12, linestyle='--', linewidth=1.5, color='white')
+    for t in range(60,int(stimes[len(stimes)-1]),60):
+            plt.axvline(x=t, linestyle='--', linewidth=1.5, color='blue')
     plt.colorbar(label='Power (dB)')
     plt.xlabel("Time (S)")
     plt.ylabel("Frequency (Hz)")
@@ -48,19 +49,21 @@ def plotSpectrogram(eeg, sr, window=[4, 1], res=1.5, cpu_cores=False, resample=T
     tph = np.shape(spect)[0] / (frequency_range[1] - frequency_range[0])
     minf = frequency_range[0]
     getIndex = lambda hz: int((hz - minf) * tph)
-    alpha = spect[getIndex(8):getIndex(12), ]
-    beta = spect[getIndex(12):getIndex(35), ]
-    gamma = spect[getIndex(35):getIndex(50), ]
+
+    alpha = nanpow2db(spect[getIndex(8):getIndex(12), ])
+    beta = nanpow2db(spect[getIndex(12):getIndex(35), ])
+    gamma = nanpow2db(spect[getIndex(35):getIndex(50), ])
     alpha = np.mean(alpha, axis=0)
     beta = np.mean(beta, axis=0)
     gamma = np.mean(gamma, axis=0)
     meanFig = plt.figure("EEG mean power over time")
-    meanFig.clear()
 
     ax = plt.subplot(1, 1, 1)
     # ax.set_yscale('log')
     l1, = ax.plot(alpha)
     l2, = ax.plot(beta)
     l3, = ax.plot(gamma)
+    plt.xlabel("Time (S)")
+    plt.ylabel("Power (dB)")
     ax.legend([l1, l2, l3], ['alpha', 'beta', 'gamma'])
-    return plot(spect, stimes, sfreqs, name), meanFig
+    return plot(spect, stimes, sfreqs, name), meanFig, alpha, beta, gamma
