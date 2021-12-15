@@ -28,13 +28,12 @@ class Scatter_And_Trend:
         self.title = title
 
     def plot(self, axis, x, y):
-        ax = self.axis
         if self.xLabel is not None: axis.set_xlabel(self.xLabel)
         if self.yLabel is not None: axis.set_ylabel(self.yLabel)
         if self.title is not None: axis.set_title(self.title)
-        ax.scatter(x, y)
+        axis.scatter(x, y)
         z = np.polyfit(x, y, 1)
         p = np.poly1d(z)
-        ax.plot(x, p(x))
+        axis.plot(x, p(x))
         correlation = np.corrcoef(x, y)[0, 1]
-        ax.text(x[0], p(x)[0] * 1.1, "R={:.3f}, Rsq={:.3f}".format(correlation, correlation ** 2))
+        axis.text(x[0], p(x)[0] * 1.1, "R={:.3f}, Rsq={:.3f}".format(correlation, correlation ** 2))

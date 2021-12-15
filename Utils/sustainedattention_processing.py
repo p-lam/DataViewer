@@ -28,6 +28,7 @@ def SpO2_postProcessing(SpO2, times=None, window_length=None, step_size=None):
         start = find_nearest_index(times, i)
         end = find_nearest_index(times, i + window_length)
         slice = SpO2[start:end]
+        if len(slice) == 0: break
         fNIRS_mean.append(np.mean(slice, axis=0))
         fNIRS_min.append(np.amin(slice, axis=0))
         fNIRS_max.append(np.amax(slice, axis=0))
@@ -41,15 +42,15 @@ def SpO2_postProcessing(SpO2, times=None, window_length=None, step_size=None):
     return SpO2, window_dataframe
 
 
-def reactionTime_postProcessing(reaction, timestamps, SpO2_times):
+def reactionTime_postProcessing(reaction, timestamps, SpO2_times, window_length):
     reaction_mean = []
     reaction_var = []
     find_nearest_index = lambda array, value: np.abs(array - value).argmin()
     # gets slices of reaction time data to match the timestamps of the fNIRs data
     # then gets the mean and variance of the window
-    for i in range(0, len(SpO2_times) - 2):
-        start = find_nearest_index(timestamps, SpO2_times[i])
-        end = find_nearest_index(timestamps, SpO2_times[i] + 1)
+    for t in SpO2_times:
+        start = find_nearest_index(timestamps, t)
+        end = find_nearest_index(timestamps, t + window_length)
         slice = reaction[start:end]
         if len(slice) == 0:
             mean = np.nan
@@ -62,7 +63,7 @@ def reactionTime_postProcessing(reaction, timestamps, SpO2_times):
     reaction_mean = np.array(reaction_mean)
     reaction_var = np.array(reaction_var)
     window_dataframe = pd.DataFrame()
-    window_dataframe["Time"] = timestamps
+    window_dataframe["Time"] = SpO2_times
     window_dataframe["Mean"] = reaction_mean
     window_dataframe["Var"] = reaction_var
     return window_dataframe
