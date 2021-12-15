@@ -4,7 +4,7 @@ from datetime import time
 from scipy import signal
 import pandas as pd
 
-moving_average = lambda x, w: np.convolve(x, np.ones(w), 'valid') / w
+moving_average = lambda x, w: np.convolve(x, np.ones(w)/ w, 'same')
 find_nearest_index = lambda array, value: np.abs(array - value).argmin()
 
 
@@ -20,7 +20,7 @@ def SpO2_postProcessing(SpO2, times=None, window_length=None, step_size=None):
     fNIRS_mean = []
     fNIRS_min = []
     fNIRS_max = []
-    if window_length is None: window_length = math.ceil(time[len(time) - 1] / 10)
+    if window_length is None: window_length = math.ceil(times[len(times) - 1] / 10)
     if step_size is None: step_size = window_length
     # gets slices of fNIRs data window_length long in seconds in steps of step_size
     # then gets min, max and mean of the window

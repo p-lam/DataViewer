@@ -7,7 +7,7 @@ import atexit
 moduleName = sys.modules['__main__'].__file__.split(sep="/")[-1]
 max = 0
 counts_path = os.path.abspath("utils/libcounts.json")
-
+doneImports = False
 
 def getjson():
     f = open(counts_path, "r")
@@ -34,7 +34,7 @@ def __custom_import__(name, *args, **kwargs):
     global count
     count = count + 1
     ret = __builtin_import__(name, *args, **kwargs)
-    if max > 0:
+    if max > 0 and not doneImports:
         printUpdate()
     return ret
 
@@ -42,10 +42,15 @@ def __custom_import__(name, *args, **kwargs):
 def printUpdate():
     print(f"\r{count}/{max}", end="")
 
+def doneImports():
+    print(f"\r{count}/{count}", end="")
+    updateFile()
+    global doneImports
+    doneImports = True
 
 def updateFile():
     global max_counts
-    if count != max:
+    if count != max and not doneImports:
         print("updating libcounts.json")
         if moduleName in max_counts.keys():
             max_counts[moduleName] = count

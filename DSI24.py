@@ -1,4 +1,4 @@
-import utils.custom_Importer
+import utils.custom_Importer as importer
 import os
 import tkinter
 import warnings
@@ -9,6 +9,7 @@ import numpy as np
 from utils import parser
 from utils import charts_tab_panel
 from utils.spectrogram import plotSpectrogram
+importer.doneImports()
 print("\nLibraries loaded")
 
 

@@ -1,4 +1,4 @@
-import utils.custom_Importer
+import utils.custom_Importer as importer
 import os
 import tkinter
 from utils import parser, plotter
@@ -9,6 +9,7 @@ import warnings
 from tkinter.filedialog import askopenfilename
 import matplotlib.pyplot as plt
 import numpy as np
+importer.doneImports()
 print("\nLibraries loaded")
 
 
