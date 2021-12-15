@@ -42,15 +42,19 @@ def readBioSignals(path):
         headerJson = json.loads(jsonText)
         headerJson = headerJson[list(headerJson)[0]]
         fs = headerJson["sampling rate"]
+        tstring = headerJson["time"]
+        date_object = datetime.strptime("2000:" + tstring, "%Y:%H:%M:%S.%f")
+        t0 = date_object.timestamp() * 1000
         file1.close()
     except KeyError:
         print("header missing defaulting to sampling frequency of 1000hz")
+        t0 = datetime(year=2000).timestamp()*1000
         fs = 1000
     except json.decoder.JSONDecodeError:
         print("header missing defaulting to sampling frequency of 1000hz")
+        t0 = datetime(year=2000).timestamp() * 1000
         fs = 1000
     print(f"Sampling rate {fs}hz")
-    # print(data.head())
 
     return data, fs, t0
 
@@ -59,7 +63,6 @@ def readSustainedFile(path, t0, sr):
     print(f"Loading data from {path}")
     data = pd.read_csv(path, skiprows=1, header=None, usecols=[0, 18, 19, 20],
                        names=["Time", "Input", "Correct", "Reaction"])
-    # data = data[data["Reaction"] != -1]
     toTime = lambda s: ((datetime.strptime("2000:" + s, "%Y:%H:%M:%S.%f").timestamp() * 1000 - t0) / 1000)
     data["Time"] = pd.Series([toTime(s) for s in data["Time"]])
     return data[data["Reaction"] != -1]
