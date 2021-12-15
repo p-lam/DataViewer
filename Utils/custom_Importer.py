@@ -6,7 +6,7 @@ import atexit
 
 moduleName = sys.modules['__main__'].__file__.split(sep="/")[-1]
 max = 0
-counts_path = os.path.abspath("Utils/libcounts.json")
+counts_path = os.path.abspath("utils/libcounts.json")
 
 
 def getjson():
