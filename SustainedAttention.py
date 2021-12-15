@@ -58,9 +58,9 @@ def displayData(df, sa_df, sr):
 
     ax = plt.subplot(2, 1, 2)
     drawBlueLines(ax)
-    lraw, = ax.plot(sa_df["Time"], reaction, linewidth=1,color='red')
-    lavg, = ax.plot(rt_df["Time"], rt_df["Mean"], linewidth=2,color='purple')
-    lvar, = ax.plot(rt_df["Time"], rt_df["Var"], linewidth=2,color='green')
+    lraw, = ax.plot(sa_df["Time"], reaction, linewidth=1, color='red')
+    lavg, = ax.plot(rt_df["Time"], rt_df["Mean"], linewidth=2, color='purple')
+    lvar, = ax.plot(rt_df["Time"], rt_df["Var"], linewidth=2, color='green')
     ax.legend([lraw, lavg, lvar], ['Reaction Time', 'Mean', 'Variance'])
 
     fNIRS_mean = nirs_df["Mean"].to_numpy()
@@ -69,8 +69,11 @@ def displayData(df, sa_df, sr):
     scatter_plotter = plotter.Scatter_And_Trend(xLabel="SpO2 (%)", yLabel="Reaction Time (S)")
 
     notNan = np.where(np.logical_not(np.isnan(reaction_mean)))[0]
-    first_val = notNan[0]
-    last_val = notNan[len(notNan) - 1]
+
+    clip_size = [10,10]  # ammount of time to clip off the ends where the data is the noisiest in seconds
+    # clip_size should preffrably be very small as the recording duration is only around 270 seconds long
+    first_val = notNan[0] + int(clip_size[0] / step_size)
+    last_val = notNan[len(notNan) - 1] - int(clip_size[1] / step_size)
     x = fNIRS_mean[first_val:last_val]
 
     scatterMean = plt.figure("ScatterPlot Mean")
