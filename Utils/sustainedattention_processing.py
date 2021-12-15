@@ -4,7 +4,7 @@ from datetime import time
 from scipy import signal
 import pandas as pd
 
-moving_average = lambda x, w: np.convolve(x, np.ones(w)/ w, 'same')
+moving_average = lambda x, w: np.convolve(x, np.ones(w)/ w, 'valid')
 find_nearest_index = lambda array, value: np.abs(array - value).argmin()
 
 

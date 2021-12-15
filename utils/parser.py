@@ -36,7 +36,6 @@ def readBioSignals(path):
     eoh += 10  # skips first 10 lines
     data = pd.read_csv(path, skiprows=eoh, header=None, sep="\t", usecols=[0, 2, 3, 4],
                        names=["Time", "EEG", "fNIRS1", "fNIRS2"])
-
     try:
         file1 = open(path, 'r')
         jsonText = file1.readlines()[1][2:]
@@ -53,7 +52,7 @@ def readBioSignals(path):
     print(f"Sampling rate {fs}hz")
     # print(data.head())
 
-    return data, fs
+    return data, fs, t0
 
 
 def readSustainedFile(path, t0, sr):
