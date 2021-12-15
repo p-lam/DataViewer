@@ -44,11 +44,9 @@ def printUpdate():
     print(f"\r{count}/{max}", end="")
 
 def doneImports():
-    global count
-    global max
     print(f"\r{count}/{count}", end="")
     updateFile()
-    global doneImports
+    global done
     done = True
 
 def updateFile():
