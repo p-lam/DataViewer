@@ -1,38 +1,18 @@
+import Utils.CustomImporter
 import json
 import math
 import os
 import tkinter
-
 from scipy.signal import butter, filtfilt
-
-from scipy import signal
-
-import ChartsTabPanel
-
-print(".", end="")
-
+from Utils import ChartsTabPanel
 import warnings
-
-print(".", end="")
 from collections import deque
-
-print(".", end="")
 from tkinter.filedialog import askopenfilename
-
-print(".", end="")
 import matplotlib.pyplot as plt
-
-print(".", end="")
 import numpy as np
-
-print(".", end="")
 import pandas as pd
-
-print(".", end="")
-from Spectrogram import plotSpectrogram
-
-print(".", end="")
-print("Libraries loaded ▐")
+from Utils.Spectrogram import plotSpectrogram
+print("\nLibraries loaded")
 
 
 def getEOH(path):

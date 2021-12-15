@@ -1,17 +1,15 @@
+import Utils.CustomImporter
 import os
 import tkinter
 import warnings
 from collections import deque
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-
 import numpy as np
 import pandas as pd
-
-import ChartsTabPanel
-from Spectrogram import plotSpectrogram
-
-print("Libraries loaded")
+from Utils import ChartsTabPanel
+from Utils.Spectrogram import plotSpectrogram
+print("\nLibraries loaded")
 
 
 def getEOH(path):
