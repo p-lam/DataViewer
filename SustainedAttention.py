@@ -70,10 +70,10 @@ def displayData(df, sa_df, sr):
 
     notNan = np.where(np.logical_not(np.isnan(reaction_mean)))[0]
 
-    clip_size = 10  # ammount of time to clip off the ends where the data is the noisiest in seconds
+    clip_size = [10,10]  # ammount of time to clip off the ends where the data is the noisiest in seconds
     # clip_size should preffrably be very small as the recording duration is only around 270 seconds long
-    first_val = notNan[0] + int(clip_size / step_size)
-    last_val = notNan[len(notNan) - 1] - int(clip_size / step_size)
+    first_val = notNan[0] + int(clip_size[0] / step_size)
+    last_val = notNan[len(notNan) - 1] - int(clip_size[1] / step_size)
     x = fNIRS_mean[first_val:last_val]
 
     scatterMean = plt.figure("ScatterPlot Mean")
