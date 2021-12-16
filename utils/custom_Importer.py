@@ -4,7 +4,7 @@ import sys
 import json
 import atexit
 
-moduleName = sys.modules['__main__'].__file__.split(sep="/")[-1]
+moduleName = sys.modules['__main__'].__file__.split(sep=os.path.sep)[-1]
 max = 0
 counts_path = os.path.abspath("utils/libcounts.json")
 done = False
@@ -21,8 +21,10 @@ count = 0
 max_counts = {}
 try:
     max_counts = getjson()
-    max = max_counts[moduleName]
+    if moduleName in max_counts.keys():
+        max = max_counts[moduleName]
 except:
+    print("Creating libcounts file")
     f = open(counts_path, "w")
     f.write("{}")
     f.close()
@@ -51,12 +53,8 @@ def doneImports():
 
 def updateFile():
     global max_counts
-    if count != max and not doneImports:
-        print("updating libcounts.json")
-        if moduleName in max_counts.keys():
-            max_counts[moduleName] = count
-        else:
-            max_counts[moduleName] = count
+    if count != max and not done:
+        max_counts[moduleName] = count
         f = open(counts_path, "w")
         f.write(json.dumps(max_counts))
         f.close()
